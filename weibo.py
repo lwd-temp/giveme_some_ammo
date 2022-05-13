@@ -244,7 +244,7 @@ if __name__ == "__main__":
     pages = input("How many pages do you want me to fetch? (typ. value=3)\n")
     pages = int(pages)
     dup = input("Do you want duplicated text? (Y/N)\n")
-    if dup == "Y":
+    if dup == "Y" or dup == "y":
         dup = True
     else:
         dup = False
