@@ -4,6 +4,7 @@
 
 from datetime import datetime
 from mylog import my_log,my_exception,my_hr
+from thefuzz import fuzz
 import html2text
 import os
 import requests
@@ -194,8 +195,21 @@ class Weibo():
 
         return result
 
-    def giveme_some_ammo(self,pages=1):
-        all_result = []
+    def is_duplicate(self, fullset:int,query, threshold=90):
+        for i in fullset:
+            ratio = fuzz.ratio(i,query)
+            if ratio >= threshold:
+                # DEBUG PRINT OUT
+                # print(i)
+                # print(query)
+                # print(ratio)
+                # input()
+                return True
+        return False
+
+
+    def giveme_some_ammo(self,pages=1,no_dup=False,threshold=70):
+        all_text = []
         for i in range(pages):
             result = []
             page = i+1
@@ -208,9 +222,13 @@ class Weibo():
             
             for item in parsed['data']['cards']:
                 r = self.parse_one_weibo(item)
-                if r:
-                    if not r in all_result:
-                        all_result.append(r)
+                if r and r['text']:
+                    if no_dup:
+                        if not self.is_duplicate(all_text,r['text'],threshold):
+                            all_text.append(r['text'])
+                            result.append(r)
+                    else:
+                        all_text.append(r['text'])
                         result.append(r)
 
             print("-----")
@@ -222,6 +240,12 @@ class Weibo():
         
 if __name__ == "__main__":
     w = Weibo()
+    THRESHOLD = 70
     pages = input("How many pages do you want me to fetch? (typ. value=3)\n")
     pages = int(pages)
-    w.giveme_some_ammo(pages=pages)
+    dup = input("Do you want duplicated text? (Y/N)\n")
+    if dup == "Y":
+        dup = True
+    else:
+        dup = False
+    w.giveme_some_ammo(pages, (not dup), THRESHOLD)
